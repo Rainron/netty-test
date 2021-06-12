@@ -1,0 +1,4 @@
+2021-06-13 00:00:20.508 [main] com.example.netty.config.NettyClient:73 ERROR - port:8001 
+2021-06-13 00:00:20.509 [main] com.example.netty.config.NettyClient:74 ERROR - serverIps:1 
+2021-06-13 00:01:56.377 [main] com.example.netty.config.NettyClient:74 ERROR - port:8001 
+2021-06-13 00:01:56.378 [main] com.example.netty.config.NettyClient:75 ERROR - serverIps:2 

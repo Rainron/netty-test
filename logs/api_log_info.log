@@ -1,0 +1,4 @@
+2021-06-13 00:00:20.504 [main] com.example.netty.config.PropertiesUtils:91 INFO  - enter ReadIPConfig:serverIp 
+2021-06-13 00:00:20.507 [main] com.example.netty.config.PropertiesUtils:92 INFO  - the path of user home is :C:\Users\pjf/netty/conf/config.properties 
+2021-06-13 00:01:56.373 [main] com.example.netty.config.PropertiesUtils:91 INFO  - enter ReadIPConfig:serverIp 
+2021-06-13 00:01:56.376 [main] com.example.netty.config.PropertiesUtils:92 INFO  - the path of user home is :/D:/Spring-boot/netty-test/netty-client/target/classes/config.properties 
