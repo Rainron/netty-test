@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -47,7 +48,7 @@ public class NettyClient {
     //先读取自定义logback配置文件路径 再读取连接方式
     //再读取服务端配置文件
     static {
-        String filePath = NettyClient.class.getClassLoader().getResource("logback-spring.xml").getPath();
+        String filePath = Objects.requireNonNull(NettyClient.class.getClassLoader().getResource("logback-spring.xml")).getPath();
         File logbackFile = new File(filePath);
         if (logbackFile.exists()) {
             LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
