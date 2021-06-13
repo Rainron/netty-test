@@ -5,8 +5,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.logging.Logger;
-
 /**
  * @file: HeartBeatHandler
  * @author: Rainron
