@@ -61,15 +61,16 @@ public class NettyClient {
         }else {
             throw new RuntimeException("logback-spring.xml path no file exist:"+filePath);
         }
-        String configPath = NettyClient.class.getClassLoader().getResource("config.properties").getPath();
+        log.info("开始读取配置文件");
+        String configPath = Objects.requireNonNull(NettyClient.class.getClassLoader().getResource("config.properties")).getPath();
         PropertiesUtils prop = new PropertiesUtils(configPath);
         serverIps = prop.ReadIPConfig(configPath,"serverIp");
         SERVERNUM = serverIps.length;
 
         //文件中的key值
         PORT = Integer.parseInt(prop.readValueForKey("port"));
-        log.error("port:{}",PORT);
-        log.error("serverIps:{}",serverIps.length);
+        log.info("port:{}",PORT);
+        log.info("serverIps:{}",serverIps.length);
 
         for(int i=0;i<serverIps.length;i++){
             EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
@@ -95,15 +96,15 @@ public class NettyClient {
             try {
                 future = bootstrap.connect(serverIps[i],PORT).sync();
             } catch (InterruptedException e) {
-                log.error("InterruptedException:",e);
+                log.error("InterruptedException:{}",getExceptionInfo(e));
             }
             if (future.isSuccess()) {
                 socketChannels[i] = (SocketChannel)future.channel();
-                log.error("connect "+serverIps[i]+":"+PORT+" server success");
+                log.info("Connect "+serverIps[i]+":"+PORT+" Server Success");
                 //启动心跳机制
-                sendPing(socketChannels[i]);
+                //sendPing(socketChannels[i]);
             }else {
-                log.error("connect "+serverIps[i]+":"+PORT+" server error");
+                log.info("Connect "+serverIps[i]+":"+PORT+" Server Error");
             }
 
         }

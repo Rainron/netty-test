@@ -21,7 +21,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<MessageInfo>
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.info("Channel active......"+" ip:"+ctx.channel().remoteAddress());
+        log.info("Sever Channel active:"+" ip: {}",ctx.channel().remoteAddress());
     }
 
     /**
@@ -29,12 +29,11 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<MessageInfo>
      */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, MessageInfo msg) throws Exception {
-        log.info("服务器收到消息: {}", msg.toString());
-
+        log.info("服务器收到: {} 客户端发来的消息: {} ", ctx.channel().remoteAddress(),msg.toString());
         MessageInfo req = new MessageInfo();
         req.setType(1);
         req.setCmd(0x1002);
-        req.setBody("我收到了:{}"+String.valueOf((new Date()).getTime()));
+        req.setBody("我收到了="+String.valueOf((new Date()).getTime()));
         req.setBodyLength(String.valueOf((new Date()).getTime()).length());
         ctx.write(req);
         ctx.flush();

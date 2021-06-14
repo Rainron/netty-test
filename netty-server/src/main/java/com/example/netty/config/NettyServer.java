@@ -11,7 +11,9 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 
 /**
  * @file: NettyServer
@@ -86,23 +88,29 @@ public class NettyServer {
             bootstrap.childHandler(new MyServerInitializer());
 
             ChannelFuture future = bootstrap.bind(serverPort).sync();
-            log.info("服务器启动开始监听端口: {}", port);
+            log.info("Server ip: {}",future.channel().remoteAddress());
+            log.info("Server Accept: {}", port);
             if (future.isSuccess()) {
-                log.info("long connection started success");
+                log.info("Long Connection Started Success");
             } else {
-                log.error("long connection started fail");
+                log.error("Long Connection Started Failure");
             }
             //等待关闭(程序阻塞在这里等待客户端请求)
             future.channel().closeFuture().sync();
         }catch (InterruptedException e){
             e.printStackTrace();
-            log.error("InterruptedException:{}",e);
+            log.error("InterruptedException:{}",getExceptionInfo(e));
         }finally {
             boss.shutdownGracefully();//关闭线程
             worker.shutdownGracefully();//关闭线程
         }
 
 
+    }
+    public static String getExceptionInfo(Exception e) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        e.printStackTrace(new PrintStream(baos));
+        return baos.toString();
     }
 
 }

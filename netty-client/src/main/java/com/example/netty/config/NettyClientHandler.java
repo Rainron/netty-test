@@ -16,14 +16,14 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<MessageInfo>
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.info("客户端 Active .....");
+        log.info("Client Channel active:"+" ip: {}",ctx.channel().remoteAddress());
     }
 
 
     @Override
-    protected void channelRead0(ChannelHandlerContext clx, MessageInfo msg) throws Exception {
-        log.info("客户端收到消息: {}", msg.toString());
-        System.out.println("服务端:"+clx.channel().remoteAddress()+"-----"+msg);
+    protected void channelRead0(ChannelHandlerContext ctx, MessageInfo msg) throws Exception {
+        log.info("客户端收到: {} 服务端发来的的消息: {} ", ctx.channel().remoteAddress(),msg.toString());
+
     }
 
     @Override

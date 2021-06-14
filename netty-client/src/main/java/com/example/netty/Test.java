@@ -21,17 +21,24 @@ public class Test {
         //启动netty客户端
         NettyClient bootstrap = new NettyClient();
         int i = 1;
+        System.out.println(LocalDateTime.now());
+        TimeUnit.SECONDS.sleep(2);
+        MessageInfo req = new MessageInfo();
+        req.setType(0);
+        req.setCmd(0x1001);
+        req.setBody(String.valueOf((new Date()).getTime()));
+        req.setBodyLength(String.valueOf((new Date()).getTime()).length());
+        bootstrap.getSocketChannel().writeAndFlush(req);
 
-        while (true) {
-            System.out.println(LocalDateTime.now());
-            TimeUnit.SECONDS.sleep(2);
-            MessageInfo req = new MessageInfo();
-            req.setType(0);
-            req.setCmd(0x1001);
-            req.setBody(String.valueOf((new Date()).getTime()));
-            req.setBodyLength(String.valueOf((new Date()).getTime()).length());
-            bootstrap.getSocketChannel().writeAndFlush(req);
-            i++;
-        }
+//        while (true) {
+//            System.out.println(LocalDateTime.now());
+//            TimeUnit.SECONDS.sleep(2);
+//            MessageInfo req = new MessageInfo();
+//            req.setType(0);
+//            req.setCmd(0x1001);
+//            req.setBody(String.valueOf((new Date()).getTime()));
+//            req.setBodyLength(String.valueOf((new Date()).getTime()).length());
+//            bootstrap.getSocketChannel().writeAndFlush(req);
+//        }
     }
 }
