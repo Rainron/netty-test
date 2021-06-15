@@ -23,7 +23,7 @@ public class PropertiesUtils {
 
     public void getProperties(String filePath) {
         if (StringUtils.isEmpty(filePath.trim())){
-            log.error("filePath:",filePath);
+            log.error("filePath:{}",filePath);
         }
 
         try {
