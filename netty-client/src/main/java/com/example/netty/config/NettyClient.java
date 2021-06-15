@@ -69,7 +69,7 @@ public class NettyClient {
         //文件中的key值
         PORT = Integer.parseInt(prop.readValueForKey("port"));
         log.info("port:{}",PORT);
-        log.info("serverIps:{}",serverIps.length);
+        log.info("serverIpCount:{}",serverIps.length);
 
         for(int i=0;i<serverIps.length;i++){
             try {
@@ -113,11 +113,11 @@ public class NettyClient {
         }
     }
 
-    public NettyClient() throws Exception {
+    public NettyClient()  {
 
     }
 
-    public NettyClient(int port, String host) throws Exception {
+    public NettyClient(int port, String host)  {
 
     }
 
