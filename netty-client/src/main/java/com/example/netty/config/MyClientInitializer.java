@@ -31,7 +31,7 @@ public class MyClientInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast(new MessageDecoder());
         pipeline.addLast(new NettyClientHandler());
         //心跳机制 客户端写服务端返回的东西
-        pipeline.addLast(new IdleStateHandler(0, 6, 0, TimeUnit.SECONDS)); //心跳检查handler)
+        pipeline.addLast(new IdleStateHandler(0, 0, 10, TimeUnit.SECONDS));
         pipeline.addLast(new HeartBeatClientHandler());
     }
 }

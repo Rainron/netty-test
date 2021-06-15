@@ -33,7 +33,7 @@ public class MyServerInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast("MessageEncoder",new MessageEncoder());
         pipeline.addLast(new NettyServerHandler());
         ////心跳机制 服务端读客户端发送的东西
-//        pipeline.addLast(new IdleStateHandler(5,0,0,TimeUnit.SECONDS));
-//        pipeline.addLast(new HeartBeatServerHandler());
+        pipeline.addLast(new IdleStateHandler(0,0,10,TimeUnit.SECONDS));
+        pipeline.addLast(new HeartBeatServerHandler());
     }
 }

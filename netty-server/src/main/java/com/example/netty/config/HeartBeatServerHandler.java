@@ -31,25 +31,23 @@ public class HeartBeatServerHandler extends SimpleChannelInboundHandler<MessageI
      */
     private static final String SPLIT = "$_";
 
-    //当服务器5秒内没有发生读的事件时，会触发这个事件
+    //当服务器10秒内没有发生读的事件时，会触发这个事件
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent) {
             IdleState state = ((IdleStateEvent) evt).state();
-            if (state == IdleState.READER_IDLE) { //当事件为读事件触发时发生异常，或者中断
-                //ctx.channel().close().sync();
-                //log.error("已与 "+ctx.channel().remoteAddress()+" 断开连接");
-                log.error("server IdleState read null ");
-                //throw new Exception("idle exception");//将通道进行关闭
+            if (state == IdleState.READER_IDLE) {
+                ctx.channel().close().sync();
+                log.error("Server IdleState read null ");
+                log.error("已与:{}{}",ctx.channel().remoteAddress(),"断开连接");
+                //将通道进行关闭
+                throw new Exception("idle exception");
+            } else {
+                super.userEventTriggered(ctx, evt);
             }
         }
+
     }
-    //当通道有读事件时
-//    @Override
-//    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-//        log.info("server channelRead..");
-//        log.info(ctx.channel().remoteAddress() + "server :" + msg.toString());
-//    }
 
 
 

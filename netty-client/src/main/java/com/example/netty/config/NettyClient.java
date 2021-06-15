@@ -11,6 +11,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.LoggerFactory;
 
@@ -18,9 +19,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.Timer;
+import java.util.concurrent.*;
 
 /**
  * @file: NettyClient
@@ -37,7 +37,10 @@ public class NettyClient {
     private static String[] serverIps;
     private static int PORT;
     private Client[] clients = new Client[CLIENTNUM];
-    private static final String PING = "0";
+    private static final ThreadPoolExecutor heartPool;
+    private static final int HEART = 1;
+    private static final String PING = "ping";
+    private static final String PONG = "pong";
 
 
     //先读取自定义logback配置文件路径 再读取连接方式
@@ -111,6 +114,31 @@ public class NettyClient {
 
 
         }
+        //内部线程池
+        heartPool =  new ThreadPoolExecutor(2, 5,
+                0L, TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(5),new ThreadFactoryConfig("interior"));
+
+        new Timer().schedule(new MyTask(), 1000, 5000);
+    }
+
+    static class MyTask extends java.util.TimerTask {
+
+        @Override
+        public void run() {
+            heartPool.execute(new MyTaskThread());
+        }
+    }
+
+    static class MyTaskThread implements Runnable {
+
+        @Override
+        public void run() {
+            for(int i=0;i<serverIps.length;i++){
+                log.info("正在向：{}-服务器 {}",serverIps[i],"发送心跳");
+                sendPing(socketChannels[i]);
+            }
+        }
     }
 
     public NettyClient()  {
@@ -126,57 +154,20 @@ public class NettyClient {
         return socketChannels[i];
     }
 
-
-    //    private void start() throws Exception {
-//        for (){
-//            EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
-//            Bootstrap bootstrap = new Bootstrap();
-//            //绑定
-//            bootstrap.group(eventLoopGroup);
-//            //指定NIO的模式，如果是客户端就是NioSocketChannel
-//            bootstrap.channel(NioSocketChannel.class);
-//
-//            //TCP的缓冲区设置
-//            bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
-//            //设置发送缓冲的大小
-//            bootstrap.option(ChannelOption.SO_SNDBUF, 32 * 1024);
-//            //设置接收缓冲区大小
-//            bootstrap.option(ChannelOption.SO_RCVBUF, 32 * 1024);
-//            // 有数据立即发送
-//            bootstrap.option(ChannelOption.TCP_NODELAY, true);
-//            // 保持连接
-//            bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
-//
-//            bootstrap.remoteAddress(this.host, this.port);
-//            bootstrap.handler(new MyClientInitializer());
-//
-//            ChannelFuture future = bootstrap.connect(this.host, this.port).sync();
-//            if (future.isSuccess()) {
-//                socketChannel = (SocketChannel) future.channel();
-//                log.error("connect server success");
-//            }
-//        }
-//    }
-
     private static void sendPing(SocketChannel socketChannel) {
-        while (true){
-            MessageInfo req = new MessageInfo();
-            req.setType(0);
-            req.setBody("ping");
-            socketChannel.writeAndFlush(req);
-            try {
-                TimeUnit.SECONDS.sleep(2);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+
+        MessageInfo req = new MessageInfo();
+        req.setType(HEART);
+        req.setBody(PING);
+        socketChannel.writeAndFlush(req);
 
     }
 
     private  int Select(int total) {
         double r = 1;
         while (r == 1) {
-            r = Math.random();// 产生0到1之间的随机数
+            // 产生0到1之间的随机数
+            r = Math.random();
         }
         return (int) (total * r);
     }
