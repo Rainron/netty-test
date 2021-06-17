@@ -29,7 +29,12 @@ public class HeartBeatClientHandler extends SimpleChannelInboundHandler<String> 
      */
     private static final String SPLIT = "$_";
 
-    //10s内收不到服务端的回应，则断开连接
+    /*
+    * @param: [ctx, evt]
+    * @Return: void
+    * @Date: 2021/6/17
+    * @Description: 10s内收不到服务端的回应，则断开连接
+    **/
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent) {
@@ -38,6 +43,8 @@ public class HeartBeatClientHandler extends SimpleChannelInboundHandler<String> 
                 ctx.channel().close().sync();
                 log.error("Client IdleState read null ");
                 log.error("已与:{}{}",ctx.channel().remoteAddress(),"断开连接");
+
+                log.error("正在与:{}尝试重连",ctx.channel().remoteAddress());
                 //将通道进行关闭
                 throw new Exception("idle exception");
             } else {

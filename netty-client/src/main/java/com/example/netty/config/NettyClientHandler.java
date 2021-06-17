@@ -44,7 +44,8 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<MessageInfo>
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.error("exceptionCaught: {}",cause.toString());
-        log.error("server ip: {}",ctx.channel().localAddress().toString());
+        log.error("server ip: {}",ctx.channel().remoteAddress());
+
         ctx.close();
     }
 

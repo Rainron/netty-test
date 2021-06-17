@@ -34,6 +34,7 @@ public class NettyClient {
     private static int CLIENTNUM = 1;
     private static int SERVERNUM = 1;
     private static SocketChannel[] socketChannels = new SocketChannel[SERVERNUM];
+    private static ChannelFuture[] futures = new ChannelFuture[SERVERNUM];
     private static String[] serverIps;
     private static int PORT;
     private Client[] clients = new Client[CLIENTNUM];
@@ -75,68 +76,93 @@ public class NettyClient {
         log.info("serverIpCount:{}",serverIps.length);
 
         for(int i=0;i<serverIps.length;i++){
-            try {
-                EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
-                Bootstrap bootstrap = new Bootstrap();
-                //绑定
-                bootstrap.group(eventLoopGroup);
-                //指定NIO的模式，如果是客户端就是NioSocketChannel
-                bootstrap.channel(NioSocketChannel.class);
-                //TCP的缓冲区设置
-                //bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
-                //设置发送缓冲的大小
-                bootstrap.option(ChannelOption.SO_SNDBUF, 32 * 1024);
-                //设置接收缓冲区大小
-                bootstrap.option(ChannelOption.SO_RCVBUF, 32 * 1024);
-                // 有数据立即发送
-                bootstrap.option(ChannelOption.TCP_NODELAY, true);
-                // 保持连接
-                bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
-
-                bootstrap.remoteAddress(serverIps[i], PORT);
-                bootstrap.handler(new MyClientInitializer());
-                ChannelFuture future = null;
-                future = bootstrap.connect(serverIps[i],PORT).sync();
-                if (future.isSuccess()) {
-                    socketChannels[i] = (SocketChannel)future.channel();
-                    log.info("Connect "+serverIps[i]+":"+PORT+" Server Success");
-                    //启动心跳机制
-                    //sendPing(socketChannels[i]);
-                }else {
-                    log.info("Connect "+serverIps[i]+":"+PORT+" Server Error");
-                }
-            }catch (InterruptedException e){
-                log.error("Client Connect Server Error serverIp:{} port:{} InterruptedException:{}",serverIps[i],PORT,getExceptionInfo(e));
-            }catch (Exception e){
-                log.error("Client Connect Server Error serverIp:{} port:{} Exception:{}",serverIps[i],PORT,getExceptionInfo(e));
-
-            }
-
-
+            doConnect(serverIps[i],PORT,i);
         }
         //内部线程池
-        heartPool =  new ThreadPoolExecutor(2, 5,
+        heartPool =  new ThreadPoolExecutor(5, 10,
                 0L, TimeUnit.SECONDS,
                 new ArrayBlockingQueue<>(5),new ThreadFactoryConfig("interior"));
 
-        new Timer().schedule(new MyTask(), 1000, 5000);
+        new Timer().schedule(new heartBeatTask(), 1000, 5000);
+        new Timer().schedule(new reConnectTask(), 5000, 8000);
     }
 
-    static class MyTask extends java.util.TimerTask {
+    public static void doConnect(String host,int port,int i){
+        try {
+            EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
+            Bootstrap bootstrap = new Bootstrap();
+            //绑定
+            bootstrap.group(eventLoopGroup);
+            //指定NIO的模式，如果是客户端就是NioSocketChannel
+            bootstrap.channel(NioSocketChannel.class);
+            //TCP的缓冲区设置
+            //bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
+            //设置发送缓冲的大小
+            bootstrap.option(ChannelOption.SO_SNDBUF, 32 * 1024);
+            //设置接收缓冲区大小
+            bootstrap.option(ChannelOption.SO_RCVBUF, 32 * 1024);
+            // 有数据立即发送
+            bootstrap.option(ChannelOption.TCP_NODELAY, true);
+            // 保持连接
+            bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
 
-        @Override
-        public void run() {
-            heartPool.execute(new MyTaskThread());
+            bootstrap.remoteAddress(host, port);
+            bootstrap.handler(new MyClientInitializer());
+            futures[i] = bootstrap.connect(host,port).sync();
+            if (futures[i].isSuccess()) {
+                socketChannels[i] = (SocketChannel)futures[i].channel();
+                log.info("Connect "+host+":"+port+" Server Success");
+            }else {
+                log.info("Connect "+host+":"+port+" Server Error");
+            }
+        }catch (InterruptedException e){
+            log.error("Client Connect Server Error serverIp:{} port:{} InterruptedException:{}",host,port,getExceptionInfo(e));
+        }catch (Exception e){
+            log.error("Client Connect Server Error serverIp:{} port:{} Exception:{}",host,port,getExceptionInfo(e));
+
         }
     }
 
-    static class MyTaskThread implements Runnable {
+    static class heartBeatTask extends java.util.TimerTask {
+
+        @Override
+        public void run() {
+            heartPool.execute(new MyTaskThread1());
+        }
+    }
+
+    static class MyTaskThread1 implements Runnable {
 
         @Override
         public void run() {
             for(int i=0;i<serverIps.length;i++){
                 log.info("正在向：{}-服务器 {}",serverIps[i],"发送心跳");
                 sendPing(socketChannels[i]);
+            }
+        }
+    }
+
+    static class reConnectTask extends java.util.TimerTask {
+
+        @Override
+        public void run() {
+            heartPool.execute(new MyTaskThread2());
+        }
+    }
+
+    static class MyTaskThread2 implements Runnable {
+
+        @Override
+        public void run() {
+            for(int i=0;i<serverIps.length;i++){
+                if (!socketChannels[i].isActive()){
+                    log.error("开始对：{} {}",serverIps[i],"重连");
+                    doConnect(serverIps[i],PORT,i);
+                    if (socketChannels[i].isActive()){
+                        log.error("{} {}",serverIps[i],"重连成功");
+                    }
+
+                }
             }
         }
     }
